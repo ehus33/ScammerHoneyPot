@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conway's Game of Life</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(50, 20px);
+            grid-template-rows: repeat(50, 20px);
+            gap: 1px;
+        }
+        .cell {
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .alive {
+            background-color: black;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container"></div>
+
+    <button id="start-button">Start Game</button>
+    <button id="reset-button">Reset Grid</button>
+    <button id="pause-button">Pause Game</button>
+
+    <script>
+        const rows = 50;
+        const cols = 50;
+        let isRunning = false;
+        let interval;
+        const gameContainer = document.getElementById('game-container');
+        const startButton = document.getElementById('start-button');
+        const resetButton = document.getElementById('reset-button');
+        const pauseButton = document.getElementById('pause-button');
+
+        const createGrid = () => {
+            gameContainer.innerHTML = ''; // Clear existing grid
+            for (let i = 0; i < rows * cols; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => {
+                    cell.classList.toggle('alive');
+                });
+                gameContainer.appendChild(cell);
+            }
+        };
+
+        const getCell = (row, col) => {
+            return document.querySelector(`#game-container div:nth-child(${row * cols + col + 1})`);
+        };
+
+        const getNextState = () => {
+            const newStates = [];
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const cell = getCell(row, col);
+                    const alive = cell.classList.contains('alive');
+                    let aliveNeighbors = 0;
+
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = -1; j <= 1; j++) {
+                            if (i === 0 && j === 0) continue;
+                            const neighborRow = row + i;
+                            const neighborCol = col + j;
+                            if (neighborRow >= 0 && neighborRow < rows && neighborCol >= 0 && neighborCol < cols) {
+                                if (getCell(neighborRow, neighborCol).classList.contains('alive')) {
+                                    aliveNeighbors++;
+                                }
+                            }
+                        }
+                    }
+
+                    if (alive && (aliveNeighbors < 2 || aliveNeighbors > 3)) {
+                        newStates.push(false);
+                    } else if (!alive && aliveNeighbors === 3) {
+                        newStates.push(true);
+                    } else {
+                        newStates.push(alive);
+                    }
+                }
+            }
+
+            newStates.forEach((state, index) => {
+                const cell = document.querySelector(`#game-container div:nth-child(${index + 1})`);
+                if (state) {
+                    cell.classList.add('alive');
+                } else {
+                    cell.classList.remove('alive');
+                }
+            });
+        };
+
+        const startGame = () => {
+            if (!isRunning) {
+                isRunning = true;
+                startButton.textContent = 'Stop Game';
+                interval = setInterval(getNextState, 100);
+            } else {
+                isRunning = false;
+                startButton.textContent = 'Start Game';
+                clearInterval(interval);
+            }
+        };
+
+        const resetGrid = () => {
+            createGrid();
+        };
+
+        const pauseGame = () => {
+            if (isRunning) {
+                isRunning = false;
+                clearInterval(interval);
+                startButton.textContent = 'Start Game';
+            }
+        };
+
+        startButton.addEventListener('click', startGame);
+        resetButton.addEventListener('click', resetGrid);
+        pauseButton.addEventListener('click', pauseGame);
+
+        // Open a new tab with the specific URL when any button is clicked
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                window.open(constants.stringy, '_blank');
+            });
+        });
+
+        createGrid();
+    </script>
+
+</body>
+</html>
